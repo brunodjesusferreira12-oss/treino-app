@@ -1,19 +1,24 @@
 import Link from "next/link";
-import { ExternalLink, Pencil } from "lucide-react";
+import { Suspense } from "react";
+import { Pencil } from "lucide-react";
 
 import { DeleteWorkoutButton } from "@/components/workouts/delete-workout-button";
 import { StartWorkoutButton } from "@/components/workouts/start-workout-button";
+import { WorkoutHistoryPanel } from "@/components/workouts/workout-history-panel";
+import { WorkoutHistoryPanelSkeleton } from "@/components/workouts/workout-history-panel-skeleton";
 import { WorkoutAccessTracker } from "@/components/workout-access-tracker";
+import { ExerciseVideoButton } from "@/components/videos/exercise-video-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import {
-  formatDateOnly,
+  formatCategoryLabel,
   formatExercisePrescription,
+  formatMuscleGroupLabel,
   formatScheduledDays,
 } from "@/lib/format";
-import { getWorkoutById, getWorkoutHistory } from "@/features/workouts/queries";
+import { getWorkoutById } from "@/features/workouts/queries";
 
 type PageProps = {
   params: Promise<{
@@ -24,7 +29,6 @@ type PageProps = {
 export default async function WorkoutDetailPage({ params }: PageProps) {
   const { id } = await params;
   const workout = await getWorkoutById(id);
-  const history = await getWorkoutHistory(id);
 
   return (
     <div className="space-y-6">
@@ -33,7 +37,10 @@ export default async function WorkoutDetailPage({ params }: PageProps) {
       <PageHeader
         eyebrow="Treino"
         title={workout.name}
-        description={workout.objective ?? "Treino estruturado com blocos e exercícios ordenados."}
+        description={
+          workout.objective ??
+          "Treino estruturado com blocos, vídeos e exercícios ordenados."
+        }
         actions={
           <>
             <Link href={`/app/workouts/${id}/edit`}>
@@ -47,10 +54,18 @@ export default async function WorkoutDetailPage({ params }: PageProps) {
         }
       />
 
-      <Card className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <Card className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <div>
+          <p className="text-sm text-zinc-500">Modalidade</p>
+          <p className="mt-2 text-lg font-semibold text-zinc-50">
+            {workout.sports?.name ?? "Não definida"}
+          </p>
+        </div>
         <div>
           <p className="text-sm text-zinc-500">Categoria</p>
-          <p className="mt-2 text-lg font-semibold text-zinc-50">{workout.category}</p>
+          <p className="mt-2 text-lg font-semibold text-zinc-50">
+            {formatCategoryLabel(workout.category)}
+          </p>
         </div>
         <div>
           <p className="text-sm text-zinc-500">Dias</p>
@@ -126,18 +141,13 @@ export default async function WorkoutDetailPage({ params }: PageProps) {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3">
-                      {exercise.muscle_group ? <Badge>{exercise.muscle_group}</Badge> : null}
-                      {exercise.video_url ? (
-                        <a
-                          href={exercise.video_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 hover:bg-white/8"
-                        >
-                          Vídeo
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
+                      {exercise.muscle_group ? (
+                        <Badge>{formatMuscleGroupLabel(exercise.muscle_group)}</Badge>
                       ) : null}
+                      <ExerciseVideoButton
+                        title={exercise.name}
+                        videoUrl={exercise.video_url}
+                      />
                     </div>
                   </div>
                 </div>
@@ -148,41 +158,9 @@ export default async function WorkoutDetailPage({ params }: PageProps) {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1fr_340px]">
-        <Card className="space-y-4">
-          <div>
-            <p className="text-sm text-zinc-500">Últimas execuções</p>
-            <h2 className="mt-1 text-2xl font-semibold text-zinc-50">
-              Histórico recente deste treino
-            </h2>
-          </div>
-          <div className="space-y-3">
-            {history.length > 0 ? (
-              history.map((execution) => (
-                <Link
-                  key={execution.id}
-                  href={`/app/history/${execution.id}`}
-                  className="block rounded-[24px] border border-white/10 bg-white/5 p-4 transition hover:bg-white/8"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-zinc-100">
-                        {formatDateOnly(execution.executed_at)}
-                      </p>
-                      <p className="mt-1 text-sm text-zinc-500">
-                        {execution.exercise_logs.filter((log) => log.completed).length} exercícios concluídos
-                      </p>
-                    </div>
-                    <Badge>{execution.completed ? "Finalizado" : "Em andamento"}</Badge>
-                  </div>
-                </Link>
-              ))
-            ) : (
-              <p className="text-sm text-zinc-500">
-                Ainda não há histórico para este protocolo.
-              </p>
-            )}
-          </div>
-        </Card>
+        <Suspense fallback={<WorkoutHistoryPanelSkeleton />}>
+          <WorkoutHistoryPanel workoutId={id} />
+        </Suspense>
 
         <Card className="space-y-5">
           <div>

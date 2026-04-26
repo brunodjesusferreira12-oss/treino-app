@@ -10,7 +10,23 @@ type WorkoutAccessTrackerProps = {
 
 export function WorkoutAccessTracker({ workoutId }: WorkoutAccessTrackerProps) {
   useEffect(() => {
-    void touchWorkoutAction(workoutId);
+    const run = () => {
+      void touchWorkoutAction(workoutId);
+    };
+
+    if (typeof window.requestIdleCallback === "function") {
+      const idleId = window.requestIdleCallback(run, { timeout: 1500 });
+
+      return () => {
+        window.cancelIdleCallback(idleId);
+      };
+    }
+
+    const timeoutId = globalThis.setTimeout(run, 800);
+
+    return () => {
+      globalThis.clearTimeout(timeoutId);
+    };
   }, [workoutId]);
 
   return null;

@@ -7,11 +7,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { Select } from "@/components/ui/select";
+import { getHistoryExecutions, getWorkoutOptions } from "@/features/workouts/queries";
 import { formatDate } from "@/lib/format";
-import {
-  getHistoryExecutions,
-  getWorkoutOptions,
-} from "@/features/workouts/queries";
 
 type HistoryPageProps = {
   searchParams?: Promise<{
@@ -71,36 +68,36 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
 
             return (
               <Link key={execution.id} href={`/app/history/${execution.id}`}>
-                <Card className="transition hover:bg-white/[0.06]">
+                <Card className="transition hover:bg-[color:var(--surface)]">
                   <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="text-xl font-semibold text-zinc-50">
+                        <h2 className="text-xl font-semibold text-[color:var(--foreground)]">
                           {execution.workout_name}
                         </h2>
                         <Badge>{execution.completed ? "Finalizado" : "Em andamento"}</Badge>
                       </div>
-                      <p className="text-sm text-zinc-500">
+                      <p className="text-sm text-[color:var(--muted)]">
                         {formatDate(execution.executed_at)}
                       </p>
                     </div>
 
                     <div className="grid gap-3 md:grid-cols-3 xl:min-w-[520px]">
-                      <div className="rounded-2xl bg-white/5 px-4 py-3">
-                        <p className="text-xs text-zinc-500">Exercícios concluídos</p>
-                        <p className="mt-2 text-lg font-semibold text-zinc-50">
+                      <div className="rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface)] px-4 py-3">
+                        <p className="text-xs text-[color:var(--muted)]">Exercícios concluídos</p>
+                        <p className="mt-2 text-lg font-semibold text-[color:var(--foreground)]">
                           {completedCount}
                         </p>
                       </div>
-                      <div className="rounded-2xl bg-white/5 px-4 py-3">
-                        <p className="text-xs text-zinc-500">Maior carga registrada</p>
-                        <p className="mt-2 text-lg font-semibold text-zinc-50">
+                      <div className="rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface)] px-4 py-3">
+                        <p className="text-xs text-[color:var(--muted)]">Maior carga registrada</p>
+                        <p className="mt-2 text-lg font-semibold text-[color:var(--foreground)]">
                           {lastLoad?.load_used ? `${lastLoad.load_used} kg` : "Sem carga"}
                         </p>
                       </div>
-                      <div className="rounded-2xl bg-white/5 px-4 py-3">
-                        <p className="text-xs text-zinc-500">Resumo</p>
-                        <p className="mt-2 text-sm leading-6 text-zinc-300">
+                      <div className="rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface)] px-4 py-3">
+                        <p className="text-xs text-[color:var(--muted)]">Resumo</p>
+                        <p className="mt-2 text-sm leading-6 text-[color:var(--foreground-soft)]">
                           {execution.notes ?? "Sem observações neste dia."}
                         </p>
                       </div>

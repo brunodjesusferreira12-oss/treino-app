@@ -17,10 +17,12 @@ export function EmptyState({
   actionHref,
 }: EmptyStateProps) {
   return (
-    <Card className="flex min-h-[220px] flex-col items-start justify-center gap-4 border-dashed border-white/15 bg-zinc-950/70">
+    <Card className="flex min-h-[220px] flex-col items-start justify-center gap-4 border-dashed border-[color:var(--border-strong)] bg-[color:var(--card-strong)]">
       <div className="space-y-2">
-        <h3 className="text-lg font-semibold text-zinc-100">{title}</h3>
-        <p className="max-w-xl text-sm leading-6 text-zinc-400">
+        <h3 className="text-lg font-semibold text-[color:var(--foreground)]">
+          {title}
+        </h3>
+        <p className="max-w-xl text-sm leading-6 text-[color:var(--muted)]">
           {description}
         </p>
       </div>

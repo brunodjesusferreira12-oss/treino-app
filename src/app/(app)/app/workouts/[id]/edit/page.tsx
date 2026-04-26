@@ -16,17 +16,21 @@ export default async function EditWorkoutPage({ params }: PageProps) {
       mode="edit"
       initialValues={{
         id: workout.id,
+        sportSlug: (workout.sports?.slug as "musculacao" | "pilates" | "crossfit") ?? "musculacao",
         name: workout.name,
         scheduledDays: workout.scheduled_days,
         category: workout.category as
-          | "fortalecimento para corrida"
-          | "musculação"
+          | "forca"
+          | "hipertrofia"
           | "core"
-          | "pliometria"
           | "mobilidade"
           | "estabilidade"
-          | "superiores"
-          | "inferiores",
+          | "condicionamento"
+          | "metcon"
+          | "tecnica"
+          | "recuperacao"
+          | "pilates solo"
+          | "pilates equipamentos",
         objective: workout.objective,
         notes: workout.notes,
         sections: workout.workout_sections.map((section) => ({

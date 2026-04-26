@@ -4,8 +4,59 @@
   color-scheme: dark;
   --background: #08090b;
   --foreground: #f4f4f5;
+  --foreground-soft: #d4d4d8;
   --muted: #a1a1aa;
+  --muted-strong: #71717a;
   --accent: #bef264;
+  --accent-contrast: #09090b;
+  --card: rgba(24, 24, 27, 0.72);
+  --card-strong: rgba(9, 9, 11, 0.82);
+  --surface: rgba(255, 255, 255, 0.05);
+  --surface-strong: rgba(255, 255, 255, 0.09);
+  --surface-soft: rgba(255, 255, 255, 0.04);
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  --logo-surface: rgba(0, 0, 0, 0.6);
+  --shadow-card: 0 20px 80px rgba(0, 0, 0, 0.35);
+  --grid-line: rgba(255, 255, 255, 0.04);
+  --body-glow-primary: rgba(190, 242, 100, 0.12);
+  --body-glow-secondary: rgba(56, 189, 248, 0.09);
+  --body-start: #0a0b0e;
+  --body-end: #07080a;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.light {
+  color-scheme: light;
+  --background: #f4f7fb;
+  --foreground: #18181b;
+  --foreground-soft: #3f3f46;
+  --muted: #64748b;
+  --muted-strong: #475569;
+  --accent: #a3e635;
+  --accent-contrast: #111827;
+  --card: rgba(255, 255, 255, 0.82);
+  --card-strong: rgba(255, 255, 255, 0.94);
+  --surface: rgba(15, 23, 42, 0.05);
+  --surface-strong: rgba(15, 23, 42, 0.09);
+  --surface-soft: rgba(15, 23, 42, 0.04);
+  --border: rgba(15, 23, 42, 0.12);
+  --border-strong: rgba(15, 23, 42, 0.16);
+  --logo-surface: rgba(255, 255, 255, 0.92);
+  --shadow-card: 0 20px 70px rgba(15, 23, 42, 0.1);
+  --grid-line: rgba(15, 23, 42, 0.06);
+  --body-glow-primary: rgba(163, 230, 53, 0.14);
+  --body-glow-secondary: rgba(14, 165, 233, 0.12);
+  --body-start: #f7fafc;
+  --body-end: #edf2f7;
+  --success-foreground: #3f6212;
+  --success-foreground-soft: #4d7c0f;
+  --success-border: rgba(101, 163, 13, 0.28);
+  --success-surface: rgba(163, 230, 53, 0.16);
+  --success-surface-strong: rgba(163, 230, 53, 0.24);
 }
 
 * {
@@ -19,9 +70,9 @@ html {
 body {
   min-height: 100vh;
   background:
-    radial-gradient(circle at top, rgba(190, 242, 100, 0.12), transparent 28%),
-    radial-gradient(circle at right top, rgba(56, 189, 248, 0.09), transparent 24%),
-    linear-gradient(180deg, #0a0b0e 0%, #07080a 100%);
+    radial-gradient(circle at top, var(--body-glow-primary), transparent 28%),
+    radial-gradient(circle at right top, var(--body-glow-secondary), transparent 24%),
+    linear-gradient(180deg, var(--body-start) 0%, var(--body-end) 100%);
   color: var(--foreground);
   font-feature-settings:
     "rlig" 1,
@@ -33,8 +84,8 @@ body::before {
   inset: 0;
   z-index: -1;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 96px 96px;
   content: "";
   mask-image: radial-gradient(circle at center, black, transparent 85%);
@@ -56,4 +107,98 @@ textarea {
 ::selection {
   background: rgba(190, 242, 100, 0.28);
   color: #09090b;
+}
+
+html.light .text-zinc-50,
+html.light .text-zinc-100 {
+  color: var(--foreground) !important;
+}
+
+html.light .text-zinc-200 {
+  color: var(--foreground-soft) !important;
+}
+
+html.light .text-zinc-300 {
+  color: #52525b !important;
+}
+
+html.light .text-zinc-400,
+html.light .text-zinc-500 {
+  color: var(--muted) !important;
+}
+
+html.light .text-lime-100,
+html.light .text-lime-200,
+html.light .text-lime-300 {
+  color: var(--success-foreground) !important;
+}
+
+html.light .text-lime-300\/70,
+html.light .text-lime-300\/80 {
+  color: color-mix(in srgb, var(--success-foreground) 78%, transparent) !important;
+}
+
+html.light .border-white\/8,
+html.light .border-white\/10,
+html.light .border-white\/15,
+html.light .border-white\/20 {
+  border-color: var(--border) !important;
+}
+
+html.light .border-lime-300\/20,
+html.light .border-lime-300\/25,
+html.light .border-lime-300\/30 {
+  border-color: var(--success-border) !important;
+}
+
+html.light .bg-white\/5,
+html.light .bg-white\/6,
+html.light .bg-white\/7,
+html.light .bg-white\/8,
+html.light .bg-white\/10,
+html.light .bg-white\/\[0\.04\],
+html.light .bg-white\/\[0\.06\] {
+  background-color: var(--surface) !important;
+}
+
+html.light .bg-black\/20 {
+  background-color: rgba(15, 23, 42, 0.04) !important;
+}
+
+html.light .bg-black\/60 {
+  background-color: rgba(255, 255, 255, 0.94) !important;
+}
+
+html.light .bg-lime-300\/8,
+html.light .bg-lime-300\/10,
+html.light .bg-lime-300\/15 {
+  background-color: var(--success-surface) !important;
+}
+
+html.light .bg-zinc-950\/40,
+html.light .bg-zinc-950\/45,
+html.light .bg-zinc-950\/50,
+html.light .bg-zinc-950\/55,
+html.light .bg-zinc-950\/60,
+html.light .bg-zinc-950\/65,
+html.light .bg-zinc-950\/70,
+html.light .bg-zinc-950\/90,
+html.light .bg-zinc-900\/70,
+html.light .bg-zinc-900\/80 {
+  background-color: var(--card-strong) !important;
+}
+
+html.light .hover\:bg-white\/6:hover,
+html.light .hover\:bg-white\/8:hover,
+html.light .hover\:bg-white\/10:hover,
+html.light .hover\:bg-white\/\[0\.06\]:hover {
+  background-color: var(--surface-strong) !important;
+}
+
+html.light .hover\:bg-lime-300\/15:hover {
+  background-color: var(--success-surface-strong) !important;
+}
+
+html.light .hover\:text-zinc-100:hover {
+  color: var(--foreground) !important;
 }

@@ -11,8 +11,9 @@ const variantClasses: Record<NonNullable<ButtonProps["variant"]>, string> = {
   primary:
     "bg-lime-300 text-zinc-950 shadow-[0_12px_30px_rgba(190,242,100,0.25)] hover:bg-lime-200",
   secondary:
-    "border border-white/10 bg-white/6 text-zinc-100 hover:bg-white/10",
-  ghost: "text-zinc-200 hover:bg-white/8",
+    "border border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--foreground)] hover:bg-[color:var(--surface-strong)]",
+  ghost:
+    "text-[color:var(--foreground-soft)] hover:bg-[color:var(--surface)] hover:text-[color:var(--foreground)]",
   danger: "bg-red-500/90 text-white hover:bg-red-500",
 };
 

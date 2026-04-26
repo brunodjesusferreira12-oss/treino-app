@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { CATEGORY_OPTIONS, DAY_ORDER } from "@/lib/constants";
+import { CATEGORY_OPTIONS, DAY_ORDER, SPORT_SLUGS } from "@/lib/constants";
 
 const textToNull = <T extends z.ZodTypeAny>(schema: T) =>
   z.preprocess((value) => {
@@ -19,6 +19,24 @@ const numberToNull = z.preprocess((value) => {
   const parsed = Number(value);
   return Number.isNaN(parsed) ? null : parsed;
 }, z.number().nonnegative().nullable());
+
+const rpeToNull = z.preprocess((value) => {
+  if (value === "" || value === null || value === undefined) {
+    return null;
+  }
+
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? null : parsed;
+}, z.number().min(1).max(10).nullable());
+
+const restSecondsToNull = z.preprocess((value) => {
+  if (value === "" || value === null || value === undefined) {
+    return null;
+  }
+
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? null : parsed;
+}, z.number().int().min(0).max(3600).nullable());
 
 export const exerciseFormSchema = z.object({
   id: z.string().uuid().optional(),
@@ -44,6 +62,7 @@ export const sectionFormSchema = z.object({
 
 export const workoutFormSchema = z.object({
   id: z.string().uuid().optional(),
+  sportSlug: z.enum(SPORT_SLUGS as unknown as [string, ...string[]]),
   name: z.string().trim().min(2, "Informe o nome do treino."),
   scheduledDays: z
     .array(z.enum(DAY_ORDER as unknown as [string, ...string[]]))
@@ -61,6 +80,8 @@ export const exerciseLogInputSchema = z.object({
   completed: z.boolean().default(false),
   loadUsed: numberToNull,
   repsDone: textToNull(z.string().trim().max(80)),
+  rpe: rpeToNull,
+  restSeconds: restSecondsToNull,
   notes: textToNull(z.string().trim().max(500)),
 });
 

@@ -27,10 +27,9 @@ import {
   CATEGORY_OPTIONS,
   DAY_OPTIONS,
   MUSCLE_GROUP_OPTIONS,
+  SPORT_OPTIONS,
 } from "@/lib/constants";
-import {
-  upsertWorkoutAction,
-} from "@/features/workouts/actions";
+import { upsertWorkoutAction } from "@/features/workouts/actions";
 import {
   workoutFormSchema,
   type WorkoutFormValues,
@@ -86,7 +85,7 @@ function SectionEditor({
               error={errors.sections?.[sectionIndex]?.title?.message}
             >
               <Input
-                placeholder="Ex.: Ativação, Força, Complementar..."
+              placeholder="Ex.: ativação, força, principal, finisher..."
                 {...register(`sections.${sectionIndex}.title`)}
               />
             </FormField>
@@ -109,7 +108,7 @@ function SectionEditor({
           >
             <div className="mb-4 flex items-center justify-between">
               <h4 className="font-medium text-zinc-100">
-                Exercício {exerciseIndex + 1}
+                Exercicio {exerciseIndex + 1}
               </h4>
               <Button
                 variant="ghost"
@@ -129,14 +128,14 @@ function SectionEditor({
                 }
               >
                 <Input
-                  placeholder="Nome do exercício"
+                  placeholder="Nome do exercicio"
                   {...register(
                     `sections.${sectionIndex}.exercises.${exerciseIndex}.name`,
                   )}
                 />
               </FormField>
 
-              <FormField label="Grupo muscular">
+              <FormField label="Grupo">
                 <Select
                   defaultValue=""
                   {...register(
@@ -152,7 +151,7 @@ function SectionEditor({
                 </Select>
               </FormField>
 
-              <FormField label="Séries">
+              <FormField label="Series">
                 <Input
                   type="number"
                   min={0}
@@ -166,9 +165,9 @@ function SectionEditor({
                 />
               </FormField>
 
-              <FormField label="Repetições">
+                        <FormField label="Repetições">
                 <Input
-                  placeholder="8, 12-15, 6 cada perna"
+                  placeholder="8, 12-15, AMRAP..."
                   {...register(
                     `sections.${sectionIndex}.exercises.${exerciseIndex}.reps`,
                   )}
@@ -177,23 +176,23 @@ function SectionEditor({
 
               <FormField label="Tempo">
                 <Input
-                  placeholder="30s, 60-75s"
+                  placeholder="30s, 45s, 12 min"
                   {...register(
                     `sections.${sectionIndex}.exercises.${exerciseIndex}.duration`,
                   )}
                 />
               </FormField>
 
-              <FormField label="Distância">
+              <FormField label="Distancia">
                 <Input
-                  placeholder="20m"
+                  placeholder="20m, 400m"
                   {...register(
                     `sections.${sectionIndex}.exercises.${exerciseIndex}.distance`,
                   )}
                 />
               </FormField>
 
-              <FormField label="Carga padrão (kg)">
+              <FormField label="Carga padrao (kg)">
                 <Input
                   type="number"
                   min={0}
@@ -208,11 +207,11 @@ function SectionEditor({
                 />
               </FormField>
 
-              <FormField label="Vídeo">
+              <FormField label="Video">
                 <div className="relative">
                   <Video className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
                   <Input
-                    placeholder="https://..."
+                    placeholder="https://youtube.com/..."
                     className="pl-11"
                     {...register(
                       `sections.${sectionIndex}.exercises.${exerciseIndex}.videoUrl`,
@@ -222,10 +221,10 @@ function SectionEditor({
               </FormField>
 
               <div className="md:col-span-2">
-                <FormField label="Observações">
+                          <FormField label="Observações">
                   <Textarea
                     className="min-h-[90px]"
-                    placeholder="Técnica, amplitude, foco ou lembretes..."
+                            placeholder="Dicas de técnica, respiração, cadência ou observações..."
                     {...register(
                       `sections.${sectionIndex}.exercises.${exerciseIndex}.notes`,
                     )}
@@ -244,19 +243,16 @@ function SectionEditor({
                     />
                   )}
                 />
-                Marcar como exercício importante
+                      Marcar como exercício importante
               </label>
             </div>
           </div>
         ))}
       </div>
 
-      <Button
-        variant="secondary"
-        onClick={() => append(createEmptyExercise())}
-      >
+      <Button variant="secondary" onClick={() => append(createEmptyExercise())}>
         <Plus className="h-4 w-4" />
-        Adicionar exercício
+                    Adicionar exercício
       </Button>
     </Card>
   );
@@ -271,6 +267,7 @@ export function WorkoutForm({ mode, initialValues }: WorkoutFormProps) {
   const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
   const {
     control,
     register,
@@ -282,14 +279,15 @@ export function WorkoutForm({ mode, initialValues }: WorkoutFormProps) {
     defaultValues:
       initialValues ??
       ({
+        sportSlug: "musculacao",
         name: "",
         scheduledDays: ["monday"],
-        category: "fortalecimento para corrida",
+        category: "forca",
         objective: null,
         notes: null,
         sections: [
           {
-            title: "Ativação",
+            title: "Principal",
             exercises: [createEmptyExercise()],
           },
         ],
@@ -301,17 +299,18 @@ export function WorkoutForm({ mode, initialValues }: WorkoutFormProps) {
     name: "sections",
   });
 
-  const selectedDays = useWatch({
-    control,
-    name: "scheduledDays",
-  }) ?? [];
+  const selectedDays =
+    useWatch({
+      control,
+      name: "scheduledDays",
+    }) ?? [];
 
   return (
     <div className="space-y-6">
       <PageHeader
         eyebrow={mode === "create" ? "Novo treino" : "Editar treino"}
         title={mode === "create" ? "Montar protocolo" : "Atualizar protocolo"}
-        description="Cadastre blocos, exercícios, agenda semanal e links de vídeo para executar no dia com histórico completo."
+        description="Cadastre modalidade, blocos, exercícios e links de vídeo para executar o treino com contexto real do esporte."
       />
 
       <form
@@ -322,7 +321,7 @@ export function WorkoutForm({ mode, initialValues }: WorkoutFormProps) {
             const result = await upsertWorkoutAction(values);
 
             if (!result.ok || !result.id) {
-              setMessage(result.error ?? "Não foi possível salvar o treino.");
+          setMessage(result.error ?? "Não foi possível salvar o treino.");
               return;
             }
 
@@ -332,8 +331,18 @@ export function WorkoutForm({ mode, initialValues }: WorkoutFormProps) {
         )}
       >
         <Card className="grid gap-4 md:grid-cols-2">
+          <FormField label="Modalidade" error={errors.sportSlug?.message}>
+            <Select {...register("sportSlug")}>
+              {SPORT_OPTIONS.map((sport) => (
+                <option key={sport.slug} value={sport.slug}>
+                  {sport.name}
+                </option>
+              ))}
+            </Select>
+          </FormField>
+
           <FormField label="Nome do treino" error={errors.name?.message}>
-            <Input placeholder="Ex.: Quadríceps + Posterior" {...register("name")} />
+            <Input placeholder="Ex.: Upper strength, Pilates core flow..." {...register("name")} />
           </FormField>
 
           <FormField label="Categoria" error={errors.category?.message}>
@@ -344,6 +353,13 @@ export function WorkoutForm({ mode, initialValues }: WorkoutFormProps) {
                 </option>
               ))}
             </Select>
+          </FormField>
+
+          <FormField label="Objetivo">
+            <Input
+              placeholder="Ex.: Força, postura, condicionamento, técnica..."
+              {...register("objective")}
+            />
           </FormField>
 
           <div className="md:col-span-2">
@@ -376,17 +392,10 @@ export function WorkoutForm({ mode, initialValues }: WorkoutFormProps) {
             </FormField>
           </div>
 
-          <FormField label="Objetivo">
-            <Input
-              placeholder="Ex.: Fortalecimento para corrida e posterior de coxa"
-              {...register("objective")}
-            />
-          </FormField>
-
           <div className="md:col-span-2">
-            <FormField label="Observações gerais">
+              <FormField label="Observações gerais">
               <Textarea
-                placeholder="Notas do protocolo, recomendações gerais e lembretes..."
+                placeholder="Notas do protocolo, adaptações por modalidade e observações gerais..."
                 {...register("notes")}
               />
             </FormField>
@@ -402,10 +411,7 @@ export function WorkoutForm({ mode, initialValues }: WorkoutFormProps) {
               register={register}
               errors={errors}
               onRemoveSection={(index) => {
-                if (fields.length === 1) {
-                  return;
-                }
-
+                if (fields.length === 1) return;
                 remove(index);
               }}
             />
@@ -437,7 +443,7 @@ export function WorkoutForm({ mode, initialValues }: WorkoutFormProps) {
               ? "Salvando..."
               : mode === "create"
                 ? "Criar treino"
-                : "Salvar alterações"}
+            : "Salvar alterações"}
           </Button>
           <Button
             variant="secondary"

@@ -48,7 +48,7 @@ export function ResetPasswordForm() {
             setMessage(null);
 
             if (values.password !== values.confirmPassword) {
-              setMessage("As senhas não coincidem.");
+      setMessage("As senhas não coincidem.");
               return;
             }
 
@@ -63,7 +63,6 @@ export function ResetPasswordForm() {
             }
 
             router.push("/app");
-            router.refresh();
           }),
         )}
       >
@@ -79,7 +78,7 @@ export function ResetPasswordForm() {
         </FormField>
 
         {message ? (
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-zinc-300">
+          <div className="rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface)] px-4 py-3 text-sm text-[color:var(--foreground-soft)]">
             {message}
           </div>
         ) : null}
@@ -89,7 +88,7 @@ export function ResetPasswordForm() {
         </Button>
       </form>
 
-      <Link href="/login" className="text-sm text-zinc-400 hover:text-zinc-100">
+      <Link href="/login" className="text-sm text-[color:var(--muted)] hover:text-[color:var(--foreground)]">
         Voltar para login
       </Link>
     </Card>

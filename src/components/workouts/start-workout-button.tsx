@@ -30,7 +30,6 @@ export function StartWorkoutButton({ workoutId }: StartWorkoutButtonProps) {
             }
 
             router.push(`/app/executions/${result.id}`);
-            router.refresh();
           })
         }
         disabled={isPending}

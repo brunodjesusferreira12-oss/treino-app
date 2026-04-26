@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 import { AppShell } from "@/components/app-shell";
 import { ensureUserSeeded } from "@/features/onboarding/actions";
-import { getProfile } from "@/features/workouts/queries";
+import { getCurrentSportContext, getProfile } from "@/features/workouts/queries";
 import { requireUser } from "@/lib/auth";
 
 export default async function ProtectedLayout({
@@ -12,10 +12,17 @@ export default async function ProtectedLayout({
 }) {
   const user = await requireUser();
   await ensureUserSeeded();
-  const profile = await getProfile();
+  const [profile, sportContext] = await Promise.all([
+    getProfile(),
+    getCurrentSportContext(),
+  ]);
 
   return (
-    <AppShell fullName={profile?.full_name} email={user.email}>
+    <AppShell
+      fullName={profile?.full_name}
+      email={user.email}
+      activeSportName={sportContext.activeSportName}
+    >
       {children}
     </AppShell>
   );

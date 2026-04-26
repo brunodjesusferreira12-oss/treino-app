@@ -1,0 +1,76 @@
+export const GAMIFICATION_POINTS = {
+  SPORT_SELECTION_COMPLETED: 10,
+  COMPLETE_WORKOUT: 100,
+  COMPLETE_EXERCISE: 10,
+  ADD_NOTE: 5,
+  WEEKLY_STREAK_3: 80,
+  WEEKLY_STREAK_5: 150,
+  BATTLE_WIN: 120,
+  BATTLE_DRAW: 50,
+} as const;
+
+export const BADGE_DEFINITIONS = [
+  {
+    slug: "primeiro-treino",
+    name: "Primeiro treino concluído",
+    description: "Finalizou a primeira sessão registrada.",
+    icon: "sparkles",
+    sportSlug: null,
+  },
+  {
+    slug: "semana-perfeita",
+    name: "Semana perfeita",
+    description: "Completou 5 treinos na mesma semana.",
+    icon: "calendar-check",
+    sportSlug: null,
+  },
+  {
+    slug: "especialista-musculacao",
+    name: "Especialista em musculação",
+    description: "Acumulou consistência em treinos de musculação.",
+    icon: "dumbbell",
+    sportSlug: "musculacao",
+  },
+  {
+    slug: "especialista-pilates",
+    name: "Especialista em pilates",
+    description: "Acumulou consistência em treinos de pilates.",
+    icon: "lotus",
+    sportSlug: "pilates",
+  },
+  {
+    slug: "especialista-crossfit",
+    name: "Especialista em crossfit",
+    description: "Acumulou consistência em treinos de crossfit.",
+    icon: "flame",
+    sportSlug: "crossfit",
+  },
+  {
+    slug: "vencedor-de-batalha",
+    name: "Vencedor de batalha",
+    description: "Venceu ao menos um duelo com outro competidor.",
+    icon: "swords",
+    sportSlug: null,
+  },
+  {
+    slug: "sequencia-7-dias",
+    name: "Sequência de 7 dias",
+    description: "Treinou em 7 dias consecutivos.",
+    icon: "zap",
+    sportSlug: null,
+  },
+  {
+    slug: "dez-treinos",
+    name: "10 treinos concluídos",
+    description: "Alcançou dez treinos finalizados.",
+    icon: "medal",
+    sportSlug: null,
+  },
+  {
+    slug: "cinquenta-exercicios",
+    name: "50 exercícios concluídos",
+    description: "Concluiu cinquenta exercícios registrados.",
+    icon: "target",
+    sportSlug: null,
+  },
+] as const;

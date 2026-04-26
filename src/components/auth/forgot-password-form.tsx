@@ -27,7 +27,7 @@ export function ForgotPasswordForm() {
     <Card className="space-y-6 p-6 md:p-8">
       <div className="space-y-2">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-lime-300/70">
-          Recuperação
+          Recuperacao
         </p>
         <h1 className="text-3xl font-semibold text-zinc-50">
           Redefinir senha
@@ -60,11 +60,11 @@ export function ForgotPasswordForm() {
         )}
       >
         <FormField label="E-mail">
-          <Input type="email" placeholder="voce@email.com" {...register("email")} />
+          <Input type="email" placeholder="voce@exemplo.com" {...register("email")} />
         </FormField>
 
         {message ? (
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-zinc-300">
+          <div className="rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface)] px-4 py-3 text-sm text-[color:var(--foreground-soft)]">
             {message}
           </div>
         ) : null}
@@ -74,7 +74,7 @@ export function ForgotPasswordForm() {
         </Button>
       </form>
 
-      <Link href="/login" className="text-sm text-zinc-400 hover:text-zinc-100">
+      <Link href="/login" className="text-sm text-[color:var(--muted)] hover:text-[color:var(--foreground)]">
         Voltar para login
       </Link>
     </Card>

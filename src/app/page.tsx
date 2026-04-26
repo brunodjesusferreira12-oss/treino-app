@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, CalendarDays, ChartNoAxesCombined, ShieldCheck } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarDays,
+  ChartNoAxesCombined,
+  ShieldCheck,
+} from "lucide-react";
 
+import { FortynexLogo } from "@/components/brand/fortynex-logo";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth";
@@ -15,20 +22,14 @@ export default async function HomePage() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-7xl flex-col px-4 py-8 md:px-6 lg:px-8">
-      <header className="flex items-center justify-between rounded-[32px] border border-white/10 bg-zinc-950/60 px-5 py-4 backdrop-blur">
-        <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-lime-300 text-lg font-bold text-zinc-950">
-            T
-          </span>
-          <div>
-            <p className="text-sm font-semibold text-zinc-100">Treino App</p>
-            <p className="text-xs text-zinc-500">
-              Painel premium para treino, corrida e evolução
-            </p>
-          </div>
-        </div>
+      <header className="flex items-center justify-between rounded-[32px] border border-[color:var(--border)] bg-[color:var(--card-strong)] px-5 py-4 backdrop-blur">
+        <FortynexLogo
+          size="md"
+          subtitle="Treine. Evolua. Supere."
+        />
 
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <Link href="/login">
             <Button variant="ghost">Entrar</Button>
           </Link>
@@ -41,7 +42,7 @@ export default async function HomePage() {
       <section className="grid flex-1 items-center gap-10 py-12 lg:grid-cols-[1.15fr_0.85fr] lg:py-16">
         <div className="space-y-7">
           <div className="inline-flex items-center rounded-full border border-lime-300/20 bg-lime-300/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-lime-200">
-            Produção real com Next.js + Supabase
+            Produzido por alunos do IFMA
           </div>
           <div className="space-y-5">
             <h1 className="max-w-3xl font-[var(--font-display)] text-5xl font-semibold leading-[1.02] tracking-tight text-zinc-50 md:text-7xl">
@@ -49,9 +50,8 @@ export default async function HomePage() {
               de produto real.
             </h1>
             <p className="max-w-2xl text-base leading-8 text-zinc-400 md:text-lg">
-              Um sistema privado para fortalecimento de corrida, musculação
-              complementar e histórico detalhado de carga, repetições e
-              consistência.
+              Um sistema privado para musculação, pilates e crossfit, com
+              histórico detalhado de carga, repetições e consistência.
             </p>
           </div>
 
@@ -104,7 +104,7 @@ export default async function HomePage() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(190,242,100,0.14),transparent_36%)]" />
           <div className="relative space-y-6">
             <div className="space-y-2">
-              <p className="text-sm text-zinc-500">Preview da experiência</p>
+              <p className="text-sm text-zinc-500">Prévia da experiência</p>
               <h2 className="text-2xl font-semibold text-zinc-50">
                 Dashboard com foco em consistência.
               </h2>
@@ -143,17 +143,19 @@ export default async function HomePage() {
                     "Monster Walk",
                     "Bulgarian Split Squat",
                     "Romanian Deadlift",
-                  ].map((item) => (
-                    <div
-                      key={item}
-                      className="flex items-center justify-between rounded-2xl bg-white/5 px-4 py-3 text-sm text-zinc-300"
-                    >
-                      <span>{item}</span>
-                      <span className="rounded-full bg-white/7 px-3 py-1 text-xs text-zinc-500">
-                        pronto
-                      </span>
-                    </div>
-                  ))}
+                  ].map(
+                    (item) => (
+                      <div
+                        key={item}
+                        className="flex items-center justify-between rounded-2xl bg-white/5 px-4 py-3 text-sm text-zinc-300"
+                      >
+                        <span>{item}</span>
+                        <span className="rounded-full bg-white/7 px-3 py-1 text-xs text-zinc-500">
+                          pronto
+                        </span>
+                      </div>
+                    ),
+                  )}
                 </div>
               </div>
             </div>

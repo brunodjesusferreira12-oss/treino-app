@@ -63,14 +63,14 @@ export function LoginForm() {
         )}
       >
         <FormField label="E-mail">
-          <Input type="email" placeholder="voce@email.com" {...register("email")} />
+          <Input type="email" placeholder="voce@exemplo.com" {...register("email")} />
         </FormField>
         <FormField label="Senha">
           <Input type="password" placeholder="Sua senha" {...register("password")} />
         </FormField>
 
         {message ? (
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-zinc-300">
+          <div className="rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface)] px-4 py-3 text-sm text-[color:var(--foreground-soft)]">
             {message}
           </div>
         ) : null}
@@ -80,11 +80,11 @@ export function LoginForm() {
         </Button>
       </form>
 
-      <div className="flex flex-col gap-3 text-sm text-zinc-400 md:flex-row md:items-center md:justify-between">
-        <Link href="/forgot-password" className="hover:text-zinc-100">
+      <div className="flex flex-col gap-3 text-sm text-[color:var(--muted)] md:flex-row md:items-center md:justify-between">
+        <Link href="/forgot-password" className="hover:text-[color:var(--foreground)]">
           Esqueci minha senha
         </Link>
-        <Link href="/signup" className="hover:text-zinc-100">
+        <Link href="/signup" className="hover:text-[color:var(--foreground)]">
           Criar conta
         </Link>
       </div>

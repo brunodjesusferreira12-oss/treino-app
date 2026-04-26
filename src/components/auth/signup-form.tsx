@@ -39,7 +39,7 @@ export function SignupForm() {
           Crie seu acesso privado
         </h1>
         <p className="text-sm leading-6 text-zinc-400">
-          O sistema já vai iniciar com seus protocolos prontos para uso.
+          O sistema ja vai iniciar com seus protocolos prontos para uso.
         </p>
       </div>
 
@@ -69,7 +69,6 @@ export function SignupForm() {
 
             if (data.session) {
               router.push("/app");
-              router.refresh();
               return;
             }
 
@@ -83,7 +82,7 @@ export function SignupForm() {
           <Input placeholder="Seu nome" {...register("fullName")} />
         </FormField>
         <FormField label="E-mail">
-          <Input type="email" placeholder="voce@email.com" {...register("email")} />
+          <Input type="email" placeholder="voce@exemplo.com" {...register("email")} />
         </FormField>
         <FormField label="Senha">
           <Input
@@ -94,7 +93,7 @@ export function SignupForm() {
         </FormField>
 
         {message ? (
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-zinc-300">
+          <div className="rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface)] px-4 py-3 text-sm text-[color:var(--foreground-soft)]">
             {message}
           </div>
         ) : null}
@@ -104,9 +103,9 @@ export function SignupForm() {
         </Button>
       </form>
 
-      <div className="text-sm text-zinc-400">
-        Já possui acesso?{" "}
-        <Link href="/login" className="text-zinc-100">
+      <div className="text-sm text-[color:var(--muted)]">
+        Ja possui acesso?{" "}
+        <Link href="/login" className="text-[color:var(--foreground)] hover:opacity-80">
           Entrar
         </Link>
       </div>

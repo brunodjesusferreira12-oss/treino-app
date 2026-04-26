@@ -30,6 +30,8 @@ export default async function ExecutionPage({ params }: PageProps) {
         completed: log.completed,
         loadUsed: log.load_used,
         repsDone: log.reps_done,
+        rpe: log.rpe,
+        restSeconds: log.rest_seconds,
         notes: log.notes,
       },
     ]),
@@ -40,7 +42,7 @@ export default async function ExecutionPage({ params }: PageProps) {
       <PageHeader
         eyebrow="Execução"
         title={execution.workout_name}
-        description="Registre carga, repetições, observações e acompanhe o progresso do treino em tempo real."
+        description="Registre carga, repetições e observações com o copiloto acompanhando seu histórico em tempo real."
       />
 
       <ExecutionForm

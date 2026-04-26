@@ -2,11 +2,12 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import type { Resolver } from "react-hook-form";
-import { CheckCircle2, CirclePlay, ExternalLink } from "lucide-react";
+import { BrainCircuit, CheckCircle2, CirclePlay } from "lucide-react";
 
+import { ExecutionCopilotCard } from "@/components/workouts/execution-copilot-card";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -15,12 +16,16 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { formatExercisePrescription } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { ExerciseVideoButton } from "@/components/videos/exercise-video-button";
 import { saveExecutionAction } from "@/features/workouts/actions";
 import {
   executionFormSchema,
   type ExecutionFormValues,
 } from "@/features/workouts/schemas";
-import type { WorkoutWithSections } from "@/features/workouts/types";
+import type {
+  ExecutionExerciseCopilotInsight,
+  WorkoutWithSections,
+} from "@/features/workouts/types";
 
 type ExecutionFormProps = {
   executionId: string;
@@ -32,6 +37,8 @@ type ExecutionFormProps = {
       completed: boolean;
       loadUsed: number | null;
       repsDone: string | null;
+      rpe: number | null;
+      restSeconds: number | null;
       notes: string | null;
     }
   >;
@@ -47,6 +54,13 @@ export function ExecutionForm({
 }: ExecutionFormProps) {
   const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
+  const [copilotInsights, setCopilotInsights] = useState<
+    Record<string, ExecutionExerciseCopilotInsight>
+  >({});
+  const [isCopilotLoading, setIsCopilotLoading] = useState(true);
+  const [activeRestExerciseId, setActiveRestExerciseId] = useState<string | null>(null);
+  const [remainingRestSeconds, setRemainingRestSeconds] = useState(0);
+  const [initialRestSeconds, setInitialRestSeconds] = useState(0);
   const [isPending, startTransition] = useTransition();
   const exercises = workout.workout_sections.flatMap((section) =>
     section.exercises.map((exercise) => ({
@@ -71,17 +85,84 @@ export function ExecutionForm({
         completed: existingLogs[exercise.id]?.completed ?? false,
         loadUsed: existingLogs[exercise.id]?.loadUsed ?? exercise.load_default ?? null,
         repsDone: existingLogs[exercise.id]?.repsDone ?? null,
+        rpe: existingLogs[exercise.id]?.rpe ?? null,
+        restSeconds: existingLogs[exercise.id]?.restSeconds ?? null,
         notes: existingLogs[exercise.id]?.notes ?? null,
       })),
     },
   });
 
-  const logs = useWatch({
-    control,
-    name: "logs",
-  }) ?? [];
+  const logs =
+    useWatch({
+      control,
+      name: "logs",
+    }) ?? [];
+
   const completedCount = logs.filter((item) => item.completed).length;
   const progress = exercises.length === 0 ? 0 : (completedCount / exercises.length) * 100;
+
+  useEffect(() => {
+    if (remainingRestSeconds <= 0) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setRemainingRestSeconds((current) => {
+        if (current <= 1) {
+          window.clearInterval(timer);
+          return 0;
+        }
+
+        return current - 1;
+      });
+    }, 1000);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [remainingRestSeconds]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadCopilot() {
+      setIsCopilotLoading(true);
+
+      try {
+        const response = await fetch(`/api/executions/${executionId}/copilot`, {
+          cache: "no-store",
+        });
+        const payload = (await response.json()) as
+          | {
+              insights?: Record<string, ExecutionExerciseCopilotInsight>;
+              error?: string;
+            }
+          | null;
+
+        if (!response.ok) {
+          throw new Error(payload?.error ?? "Não foi possível carregar o copiloto.");
+        }
+
+        if (!ignore) {
+          setCopilotInsights(payload?.insights ?? {});
+        }
+      } catch {
+        if (!ignore) {
+          setCopilotInsights({});
+        }
+      } finally {
+        if (!ignore) {
+          setIsCopilotLoading(false);
+        }
+      }
+    }
+
+    void loadCopilot();
+
+    return () => {
+      ignore = true;
+    };
+  }, [executionId]);
 
   const onSubmit = (markAsCompleted: boolean) =>
     handleSubmit((values) =>
@@ -104,6 +185,21 @@ export function ExecutionForm({
       }),
     );
 
+  function formatTimer(seconds: number) {
+    const minutes = Math.floor(seconds / 60);
+    const restSeconds = seconds % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(restSeconds).padStart(2, "0")}`;
+  }
+
+  function startRestTimer(seconds: number, exerciseId: string, exerciseIndex: number) {
+    setActiveRestExerciseId(exerciseId);
+    setInitialRestSeconds(seconds);
+    setRemainingRestSeconds(seconds);
+    setValue(`logs.${exerciseIndex}.restSeconds`, seconds, {
+      shouldDirty: true,
+    });
+  }
+
   return (
     <div className="space-y-6">
       <Card className="space-y-4">
@@ -115,7 +211,7 @@ export function ExecutionForm({
             </h2>
           </div>
           <div className="rounded-full border border-white/10 bg-white/6 px-4 py-2 text-sm text-zinc-200">
-            {Math.round(progress)}% concluído
+            {Math.round(progress)}% concluido
           </div>
         </div>
         <div className="h-3 overflow-hidden rounded-full bg-white/6">
@@ -123,6 +219,58 @@ export function ExecutionForm({
             className="h-full rounded-full bg-lime-300 transition-all"
             style={{ width: `${progress}%` }}
           />
+        </div>
+      </Card>
+
+      <Card className="space-y-3 border-lime-300/20 bg-lime-300/10">
+        <div className="flex items-center gap-2 text-sm text-lime-200">
+          <BrainCircuit className="h-4 w-4" />
+          Copiloto ativo
+        </div>
+        <p className="text-sm leading-7 text-zinc-100">
+          O copiloto acompanha este treino usando seu próprio histórico para sugerir
+          carga média, última carga útil, descanso e sinais de progressão em tempo real.
+        </p>
+        <p className="text-xs text-zinc-300">
+          {isCopilotLoading
+            ? "Carregando referências do seu histórico em segundo plano..."
+            : "Referências carregadas. Você pode ajustar carga e repetir séries com apoio do seu histórico real."}
+        </p>
+        <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+          <p className="text-xs text-zinc-500">Cronometro de descanso</p>
+          <div className="mt-2 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-2xl font-semibold text-zinc-50">
+                {remainingRestSeconds > 0 ? formatTimer(remainingRestSeconds) : "00:00"}
+              </p>
+              <p className="text-xs text-zinc-400">
+                {activeRestExerciseId && remainingRestSeconds > 0
+                  ? "Descanso em andamento para o exercício atual."
+                  : "Inicie o descanso sugerido diretamente no painel do copiloto."}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                disabled={remainingRestSeconds <= 0}
+                onClick={() => setRemainingRestSeconds(0)}
+              >
+                Encerrar
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                disabled={initialRestSeconds <= 0}
+                onClick={() => {
+                  setRemainingRestSeconds(initialRestSeconds);
+                }}
+              >
+                Reiniciar
+              </Button>
+            </div>
+          </div>
         </div>
       </Card>
 
@@ -156,8 +304,8 @@ export function ExecutionForm({
                       watched?.completed ? "border-lime-300/30 bg-lime-300/5" : "",
                     )}
                   >
-                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                      <div className="space-y-3">
+                    <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                      <div className="space-y-3 xl:max-w-xl">
                         <div className="flex flex-wrap items-center gap-3">
                           <label className="inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-200">
                             <Checkbox
@@ -186,6 +334,7 @@ export function ExecutionForm({
                             </span>
                           ) : null}
                         </div>
+
                         <div>
                           <h4 className="text-lg font-semibold text-zinc-50">
                             {exercise.name}
@@ -194,25 +343,20 @@ export function ExecutionForm({
                             {exercise.muscle_group ?? section.title}
                           </p>
                         </div>
+
                         {exercise.notes ? (
                           <p className="text-sm leading-6 text-zinc-400">
                             {exercise.notes}
                           </p>
                         ) : null}
-                        {exercise.video_url ? (
-                          <a
-                            href={exercise.video_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-2 text-sm text-lime-200 hover:text-lime-100"
-                          >
-                            Abrir vídeo
-                            <ExternalLink className="h-4 w-4" />
-                          </a>
-                        ) : null}
+
+                        <ExerciseVideoButton
+                          title={exercise.name}
+                          videoUrl={exercise.video_url}
+                        />
                       </div>
 
-                      <div className="grid w-full gap-4 md:max-w-xl md:grid-cols-3">
+                      <div className="grid w-full gap-4 md:grid-cols-4 xl:max-w-xl">
                         <FormField label="Carga (kg)">
                           <Input
                             type="number"
@@ -226,8 +370,24 @@ export function ExecutionForm({
                         </FormField>
                         <FormField label="Repetições / resultado">
                           <Input
-                            placeholder="8, 12, 30s..."
+                            placeholder="8, 30s, 1 round..."
                             {...register(`logs.${index}.repsDone`)}
+                          />
+                        </FormField>
+                        <FormField
+                          label="RPE"
+                          hint="Escala de 1 a 10 para percepção de esforço."
+                        >
+                          <Input
+                            type="number"
+                            min={1}
+                            max={10}
+                            step="0.5"
+                            placeholder="Ex.: 8"
+                            {...register(`logs.${index}.rpe`, {
+                              setValueAs: (value) =>
+                                value === "" ? null : Number(value),
+                            })}
                           />
                         </FormField>
                         <FormField label="Observação">
@@ -238,6 +398,22 @@ export function ExecutionForm({
                         </FormField>
                       </div>
                     </div>
+
+                    <ExecutionCopilotCard
+                      exercise={exercise}
+                      insight={copilotInsights[exercise.id]}
+                      currentLog={watched}
+                      isLoading={isCopilotLoading}
+                      onStartRestTimer={(seconds) =>
+                        startRestTimer(seconds, exercise.id, index)
+                      }
+                      isRestActive={
+                        activeRestExerciseId === exercise.id && remainingRestSeconds > 0
+                      }
+                      remainingRestSeconds={
+                        activeRestExerciseId === exercise.id ? remainingRestSeconds : 0
+                      }
+                    />
                   </div>
                 );
               })}

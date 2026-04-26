@@ -6,6 +6,7 @@ import { CompletionHeatmap } from "@/components/charts/completion-heatmap";
 import { LoadHistoryChart } from "@/components/charts/load-history-chart";
 import { WeeklyFrequencyChart } from "@/components/charts/weekly-frequency-chart";
 import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Select } from "@/components/ui/select";
 import { formatDateOnly } from "@/lib/format";
 import type {
@@ -85,9 +86,9 @@ export function ProgressView({ executions, logs }: ProgressViewProps) {
       <div className="grid gap-6 xl:grid-cols-2">
         <Card className="space-y-4">
           <div>
-            <p className="text-sm text-zinc-500">Frequência semanal</p>
-            <h2 className="mt-1 text-2xl font-semibold text-zinc-50">
-              Consistência nas últimas 8 semanas
+          <p className="text-sm text-[color:var(--muted)]">Frequência semanal</p>
+            <h2 className="mt-1 text-2xl font-semibold text-[color:var(--foreground)]">
+            Consistência nas últimas 8 semanas
             </h2>
           </div>
           <WeeklyFrequencyChart data={frequencyByWeek} />
@@ -96,9 +97,9 @@ export function ProgressView({ executions, logs }: ProgressViewProps) {
         <Card className="space-y-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-sm text-zinc-500">Carga por exercício</p>
-              <h2 className="mt-1 text-2xl font-semibold text-zinc-50">
-                Evolução de carga registrada
+          <p className="text-sm text-[color:var(--muted)]">Carga por exercício</p>
+              <h2 className="mt-1 text-2xl font-semibold text-[color:var(--foreground)]">
+            Evolução de carga registrada
               </h2>
             </div>
             <Select
@@ -106,45 +107,62 @@ export function ProgressView({ executions, logs }: ProgressViewProps) {
               value={selectedExercise}
               onChange={(event) => setSelectedExercise(event.target.value)}
             >
-              {exerciseNames.map((exercise) => (
-                <option key={exercise} value={exercise}>
-                  {exercise}
-                </option>
-              ))}
+              {exerciseNames.length > 0 ? (
+                exerciseNames.map((exercise) => (
+                  <option key={exercise} value={exercise}>
+                    {exercise}
+                  </option>
+                ))
+              ) : (
+                <option value="">Sem carga registrada</option>
+              )}
             </Select>
           </div>
-          <LoadHistoryChart data={loadHistory} />
+          {exerciseNames.length > 0 ? (
+            <LoadHistoryChart data={loadHistory} />
+          ) : (
+            <div className="rounded-[24px] border border-[color:var(--border)] bg-[color:var(--surface)] px-5 py-10 text-sm text-[color:var(--muted)]">
+            Assim que você registrar cargas em seus exercícios, o gráfico de evolução vai aparecer aqui.
+            </div>
+          )}
         </Card>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
         <Card className="space-y-4">
           <div>
-            <p className="text-sm text-zinc-500">Mais feitos</p>
-            <h2 className="mt-1 text-2xl font-semibold text-zinc-50">
-              Exercícios com maior recorrência
+            <p className="text-sm text-[color:var(--muted)]">Mais feitos</p>
+            <h2 className="mt-1 text-2xl font-semibold text-[color:var(--foreground)]">
+            Exercícios com maior recorrência
             </h2>
           </div>
-          <div className="space-y-3">
-            {topExercises.map(([name, count]) => (
-              <div
-                key={name}
-                className="flex items-center justify-between rounded-2xl bg-white/5 px-4 py-3"
-              >
-                <span className="text-sm text-zinc-200">{name}</span>
-                <span className="rounded-full bg-lime-300/15 px-3 py-1 text-xs font-semibold text-lime-200">
-                  {count}x
-                </span>
-              </div>
-            ))}
-          </div>
+          {topExercises.length > 0 ? (
+            <div className="space-y-3">
+              {topExercises.map(([name, count]) => (
+                <div
+                  key={name}
+                  className="flex items-center justify-between rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface)] px-4 py-3"
+                >
+                  <span className="text-sm text-[color:var(--foreground-soft)]">{name}</span>
+                  <span className="rounded-full bg-lime-300/15 px-3 py-1 text-xs font-semibold text-lime-200">
+                    {count}x
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              title="Sem dados suficientes"
+          description="Conclua exercícios nos treinos para acompanhar quais movimentos mais se repetem."
+            />
+          )}
         </Card>
 
         <Card className="space-y-4">
           <div>
-            <p className="text-sm text-zinc-500">Calendário de conclusão</p>
-            <h2 className="mt-1 text-2xl font-semibold text-zinc-50">
-              Últimos 84 dias
+          <p className="text-sm text-[color:var(--muted)]">Calendário de conclusão</p>
+            <h2 className="mt-1 text-2xl font-semibold text-[color:var(--foreground)]">
+            Últimos 84 dias
             </h2>
           </div>
           <CompletionHeatmap data={heatmap} />

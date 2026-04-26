@@ -3,10 +3,11 @@
 import { revalidatePath } from "next/cache";
 
 import { requireUser } from "@/lib/auth";
-import { formatExercisePrescription } from "@/lib/format";
-import { createClient } from "@/lib/supabase/server";
 import { APP_ROUTES } from "@/lib/constants";
+import { formatExercisePrescription } from "@/lib/format";
 import type { Database } from "@/lib/supabase/database.types";
+import { createClient } from "@/lib/supabase/server";
+import { awardExecutionGamification } from "@/features/gamification/service";
 import {
   executionFormSchema,
   type ExecutionFormValues,
@@ -23,16 +24,44 @@ type ActionResult = {
 
 type ExerciseLogInsert = Database["public"]["Tables"]["exercise_logs"]["Insert"];
 
+function isMissingExecutionMetricsColumnError(error: {
+  code?: string | null;
+  message?: string | null;
+} | null) {
+  const message = error?.message?.toLowerCase() ?? "";
+
+  return (
+    error?.code === "42703" ||
+    message.includes("rest_seconds") ||
+    message.includes(" rpe") ||
+    message.includes(".rpe")
+  );
+}
+
+function stripExecutionMetricColumns(log: ExerciseLogInsert): ExerciseLogInsert {
+  const legacyLog = { ...log };
+  delete legacyLog.rpe;
+  delete legacyLog.rest_seconds;
+  return legacyLog;
+}
+
 function revalidateWorkoutPages(workoutId?: string) {
   revalidatePath(APP_ROUTES.app);
   revalidatePath(APP_ROUTES.workouts);
   revalidatePath(APP_ROUTES.history);
   revalidatePath(APP_ROUTES.progress);
+  revalidatePath(APP_ROUTES.ranking);
+  revalidatePath(APP_ROUTES.battles);
 
   if (workoutId) {
     revalidatePath(`${APP_ROUTES.workouts}/${workoutId}`);
     revalidatePath(`${APP_ROUTES.workouts}/${workoutId}/edit`);
   }
+}
+
+function revalidateExecutionStart(workoutId: string) {
+  revalidatePath(`${APP_ROUTES.workouts}/${workoutId}`);
+  revalidatePath(APP_ROUTES.history);
 }
 
 export async function upsertWorkoutAction(
@@ -51,8 +80,22 @@ export async function upsertWorkoutAction(
   const user = await requireUser();
   const supabase = await createClient();
 
+  const { data: sport, error: sportError } = await supabase
+    .from("sports")
+    .select("id")
+    .eq("slug", input.sportSlug)
+    .single();
+
+  if (sportError || !sport) {
+    return {
+      ok: false,
+      error: sportError?.message ?? "Modalidade não encontrada.",
+    };
+  }
+
   const workoutPayload = {
     user_id: user.id,
+    sport_id: sport.id,
     name: input.name,
     day_of_week: input.scheduledDays[0] ?? null,
     scheduled_days: input.scheduledDays,
@@ -81,7 +124,10 @@ export async function upsertWorkoutAction(
       .single();
 
     if (error || !data) {
-      return { ok: false, error: error?.message ?? "Não foi possível criar o treino." };
+        return {
+          ok: false,
+          error: error?.message ?? "Não foi possível criar o treino.",
+        };
     }
 
     workoutId = data.id;
@@ -188,10 +234,7 @@ export async function upsertWorkoutAction(
     .filter((id) => !keepExerciseIds.has(id));
 
   if (exerciseIdsToDelete.length > 0) {
-    const { error } = await supabase
-      .from("exercises")
-      .delete()
-      .in("id", exerciseIdsToDelete);
+    const { error } = await supabase.from("exercises").delete().in("id", exerciseIdsToDelete);
 
     if (error) {
       return { ok: false, error: error.message };
@@ -214,7 +257,6 @@ export async function upsertWorkoutAction(
   }
 
   revalidateWorkoutPages(workoutId);
-
   return { ok: true, id: workoutId };
 }
 
@@ -233,7 +275,6 @@ export async function deleteWorkoutAction(workoutId: string): Promise<ActionResu
   }
 
   revalidateWorkoutPages(workoutId);
-
   return { ok: true };
 }
 
@@ -246,19 +287,15 @@ export async function touchWorkoutAction(workoutId: string) {
     .update({ last_accessed_at: new Date().toISOString() })
     .eq("id", workoutId)
     .eq("user_id", user.id);
-
-  revalidatePath(APP_ROUTES.app);
 }
 
-export async function startExecutionAction(
-  workoutId: string,
-): Promise<ActionResult> {
+export async function startExecutionAction(workoutId: string): Promise<ActionResult> {
   const user = await requireUser();
   const supabase = await createClient();
 
   const { data: workout, error: workoutError } = await supabase
     .from("workouts")
-    .select("id, name")
+    .select("id, name, sport_id")
     .eq("id", workoutId)
     .eq("user_id", user.id)
     .single();
@@ -272,7 +309,6 @@ export async function startExecutionAction(
 
   const start = new Date();
   start.setHours(0, 0, 0, 0);
-
   const end = new Date(start);
   end.setHours(23, 59, 59, 999);
 
@@ -295,6 +331,7 @@ export async function startExecutionAction(
     .insert({
       user_id: user.id,
       workout_id: workout.id,
+      sport_id: workout.sport_id,
       workout_name: workout.name,
       executed_at: new Date().toISOString(),
       completed: false,
@@ -309,10 +346,22 @@ export async function startExecutionAction(
     };
   }
 
-  revalidateWorkoutPages(workoutId);
-  revalidatePath(`${APP_ROUTES.workouts}/${workoutId}`);
+  const { data: confirmedExecution, error: confirmError } = await supabase
+    .from("workout_executions")
+    .select("id")
+    .eq("id", data.id)
+    .eq("user_id", user.id)
+    .maybeSingle();
 
-  return { ok: true, id: data.id };
+  if (confirmError) {
+    return {
+      ok: false,
+      error: confirmError.message,
+    };
+  }
+
+  revalidateExecutionStart(workoutId);
+  return { ok: true, id: confirmedExecution?.id ?? data.id };
 }
 
 export async function saveExecutionAction(
@@ -333,7 +382,7 @@ export async function saveExecutionAction(
 
   const { data: execution, error: executionError } = await supabase
     .from("workout_executions")
-    .select("id, workout_id")
+    .select("id, workout_id, sport_id, completed, notes")
     .eq("id", input.executionId)
     .eq("user_id", user.id)
     .single();
@@ -352,10 +401,30 @@ export async function saveExecutionAction(
     };
   }
 
-  const [{ data: sections }, { data: exercises }] = await Promise.all([
+  const [{ data: existingLogs }, { data: sections }, { data: exercises }] = await Promise.all([
+    supabase
+      .from("exercise_logs")
+      .select("exercise_id, completed, notes")
+      .eq("execution_id", input.executionId),
     supabase.from("workout_sections").select("*").eq("workout_id", execution.workout_id),
     supabase.from("exercises").select("*").eq("workout_id", execution.workout_id),
   ]);
+
+  const existingLogMap = new Map<
+    string,
+    {
+      completed: boolean;
+      notes: string | null;
+    }
+  >(
+    (existingLogs ?? []).map((log) => [
+      log.exercise_id ?? "",
+      {
+        completed: log.completed,
+        notes: log.notes,
+      },
+    ]),
+  );
 
   const sectionMap = new Map(
     ((sections ?? []) as WorkoutSectionRow[]).map((section) => [section.id, section]),
@@ -383,15 +452,27 @@ export async function saveExecutionAction(
       }),
       load_used: log.loadUsed,
       reps_done: log.repsDone,
+      rpe: log.rpe,
+      rest_seconds: log.restSeconds,
       notes: log.notes,
       completed: log.completed,
     });
   }
 
   if (payload.length > 0) {
-    const { error } = await supabase.from("exercise_logs").upsert(payload, {
+    let { error } = await supabase.from("exercise_logs").upsert(payload, {
       onConflict: "execution_id,exercise_id",
     });
+
+    if (isMissingExecutionMetricsColumnError(error)) {
+      const legacyPayload = payload.map(stripExecutionMetricColumns);
+
+      const legacyResult = await supabase.from("exercise_logs").upsert(legacyPayload, {
+        onConflict: "execution_id,exercise_id",
+      });
+
+      error = legacyResult.error;
+    }
 
     if (error) {
       return { ok: false, error: error.message };
@@ -410,6 +491,19 @@ export async function saveExecutionAction(
   if (error) {
     return { ok: false, error: error.message };
   }
+
+  await awardExecutionGamification({
+    userId: user.id,
+    sportId: execution.sport_id,
+    executionId: input.executionId,
+    completed: !execution.completed && input.completed,
+    noteAdded: !execution.notes && Boolean(input.notes),
+    exerciseCompletions: input.logs.map((log) => ({
+      exerciseId: log.exerciseId,
+      completedNow:
+        log.completed && !existingLogMap.get(log.exerciseId)?.completed,
+    })),
+  });
 
   revalidatePath(`${APP_ROUTES.app}/executions/${input.executionId}`);
   revalidateWorkoutPages(execution.workout_id);

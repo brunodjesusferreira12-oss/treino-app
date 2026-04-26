@@ -22,11 +22,11 @@ export function PageHeader({
           </p>
         ) : null}
         <div className="space-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight text-zinc-50 md:text-4xl">
+          <h1 className="text-3xl font-semibold tracking-tight text-[color:var(--foreground)] md:text-4xl">
             {title}
           </h1>
           {description ? (
-            <p className="max-w-2xl text-sm leading-6 text-zinc-400 md:text-base">
+            <p className="max-w-2xl text-sm leading-6 text-[color:var(--muted)] md:text-base">
               {description}
             </p>
           ) : null}

@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
-import { formatScheduledDays } from "@/lib/format";
+import { Select } from "@/components/ui/select";
+import { formatCategoryLabel, formatScheduledDays } from "@/lib/format";
 import type { WorkoutWithSections } from "@/features/workouts/types";
 
 type WorkoutLibraryProps = {
@@ -35,12 +36,12 @@ export function WorkoutLibrary({ workouts }: WorkoutLibraryProps) {
 
   if (workouts.length === 0) {
     return (
-      <EmptyState
-        title="Nenhum treino cadastrado"
-        description="Crie seu primeiro treino ou importe o protocolo inicial para começar a usar o painel."
-        actionLabel="Criar treino"
-        actionHref="/app/workouts/new"
-      />
+        <EmptyState
+          title="Nenhum treino cadastrado"
+          description="Crie seu primeiro treino ou importe o protocolo inicial para começar a usar o painel."
+          actionLabel="Criar treino"
+          actionHref="/app/workouts/new"
+        />
     );
   }
 
@@ -48,7 +49,7 @@ export function WorkoutLibrary({ workouts }: WorkoutLibraryProps) {
     <div className="space-y-5">
       <Card className="grid gap-4 md:grid-cols-[1fr_220px]">
         <label className="relative">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--muted)]" />
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
@@ -56,17 +57,16 @@ export function WorkoutLibrary({ workouts }: WorkoutLibraryProps) {
             className="pl-11"
           />
         </label>
-        <select
+        <Select
           value={selectedCategory}
           onChange={(event) => setSelectedCategory(event.target.value)}
-          className="h-11 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm text-zinc-100 outline-none"
         >
           {categories.map((category) => (
             <option key={category} value={category}>
-              {category === "all" ? "Todas as categorias" : category}
+              {category === "all" ? "Todas as categorias" : formatCategoryLabel(category)}
             </option>
           ))}
-        </select>
+        </Select>
       </Card>
 
       <div className="grid gap-4 xl:grid-cols-2">
@@ -78,29 +78,29 @@ export function WorkoutLibrary({ workouts }: WorkoutLibraryProps) {
 
           return (
             <Link key={workout.id} href={`/app/workouts/${workout.id}`}>
-              <Card className="h-full transition hover:-translate-y-0.5 hover:border-lime-300/20 hover:bg-white/[0.06]">
+              <Card className="h-full transition hover:-translate-y-0.5 hover:border-lime-300/20 hover:bg-[color:var(--surface)]">
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-3">
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
-                        <Badge>{workout.category}</Badge>
+                        <Badge>{formatCategoryLabel(workout.category)}</Badge>
                         <Badge className="text-lime-200">
                           {formatScheduledDays(workout.scheduled_days)}
                         </Badge>
                       </div>
-                      <h3 className="text-xl font-semibold text-zinc-50">
+                      <h3 className="text-xl font-semibold text-[color:var(--foreground)]">
                         {workout.name}
                       </h3>
                     </div>
                     {workout.objective ? (
-                      <p className="text-sm leading-6 text-zinc-400">
+                      <p className="text-sm leading-6 text-[color:var(--muted)]">
                         {workout.objective}
                       </p>
                     ) : null}
                   </div>
-                  <div className="rounded-2xl bg-white/5 px-3 py-2 text-right">
-                    <p className="text-xs text-zinc-500">Exercícios</p>
-                    <p className="text-lg font-semibold text-zinc-50">
+                  <div className="rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface)] px-3 py-2 text-right">
+                    <p className="text-xs text-[color:var(--muted)]">Exercícios</p>
+                    <p className="text-lg font-semibold text-[color:var(--foreground)]">
                       {exerciseCount}
                     </p>
                   </div>
