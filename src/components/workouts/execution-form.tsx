@@ -1,22 +1,20 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { BrainCircuit, CheckCircle2, CirclePlay } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import type { Resolver } from "react-hook-form";
-import { BrainCircuit, CheckCircle2, CirclePlay } from "lucide-react";
 
-import { ExecutionCopilotCard } from "@/components/workouts/execution-copilot-card";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { formatExercisePrescription } from "@/lib/format";
-import { cn } from "@/lib/utils";
 import { ExerciseVideoButton } from "@/components/videos/exercise-video-button";
+import { ExecutionCopilotCard } from "@/components/workouts/execution-copilot-card";
 import { saveExecutionAction } from "@/features/workouts/actions";
 import {
   executionFormSchema,
@@ -26,6 +24,8 @@ import type {
   ExecutionExerciseCopilotInsight,
   WorkoutWithSections,
 } from "@/features/workouts/types";
+import { formatExercisePrescription } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 type ExecutionFormProps = {
   executionId: string;
@@ -62,6 +62,7 @@ export function ExecutionForm({
   const [remainingRestSeconds, setRemainingRestSeconds] = useState(0);
   const [initialRestSeconds, setInitialRestSeconds] = useState(0);
   const [isPending, startTransition] = useTransition();
+
   const exercises = workout.workout_sections.flatMap((section) =>
     section.exercises.map((exercise) => ({
       ...exercise,
@@ -74,6 +75,7 @@ export function ExecutionForm({
     handleSubmit,
     control,
     setValue,
+    formState: { errors },
   } = useForm<ExecutionFormValues>({
     resolver: zodResolver(executionFormSchema) as Resolver<ExecutionFormValues>,
     defaultValues: {
@@ -100,6 +102,10 @@ export function ExecutionForm({
 
   const completedCount = logs.filter((item) => item.completed).length;
   const progress = exercises.length === 0 ? 0 : (completedCount / exercises.length) * 100;
+  const hasValidationErrors =
+    Boolean(errors.executionId) ||
+    Boolean(errors.notes) ||
+    Boolean(errors.logs?.length);
 
   useEffect(() => {
     if (remainingRestSeconds <= 0) {
@@ -164,31 +170,42 @@ export function ExecutionForm({
     };
   }, [executionId]);
 
-  const onSubmit = (markAsCompleted: boolean) =>
-    handleSubmit((values) =>
-      startTransition(async () => {
-        setMessage(null);
-        const result = await saveExecutionAction({
-          ...values,
-          completed: markAsCompleted,
-        });
+  const submitExecution = (markAsCompleted: boolean) =>
+    handleSubmit(
+      (values) =>
+        startTransition(async () => {
+          setMessage(null);
 
-        if (!result.ok) {
-          setMessage(result.error ?? "Não foi possível salvar a execução.");
-          return;
-        }
+          try {
+            const result = await saveExecutionAction({
+              ...values,
+              completed: markAsCompleted,
+            });
 
-        router.refresh();
-        if (markAsCompleted) {
-          router.push("/app/history");
-        }
-      }),
+            if (!result.ok) {
+              setMessage(result.error ?? "Não foi possível salvar a execução.");
+              return;
+            }
+
+            if (markAsCompleted) {
+              router.push("/app/history");
+              return;
+            }
+
+            router.refresh();
+          } catch {
+            setMessage("Não foi possível concluir o treino agora. Tente novamente.");
+          }
+        }),
+      () => {
+        setMessage("Revise os campos destacados antes de finalizar o treino.");
+      },
     );
 
   function formatTimer(seconds: number) {
     const minutes = Math.floor(seconds / 60);
-    const restSeconds = seconds % 60;
-    return `${String(minutes).padStart(2, "0")}:${String(restSeconds).padStart(2, "0")}`;
+    const secondsRemaining = seconds % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(secondsRemaining).padStart(2, "0")}`;
   }
 
   function startRestTimer(seconds: number, exerciseId: string, exerciseIndex: number) {
@@ -211,7 +228,7 @@ export function ExecutionForm({
             </h2>
           </div>
           <div className="rounded-full border border-white/10 bg-white/6 px-4 py-2 text-sm text-zinc-200">
-            {Math.round(progress)}% concluido
+            {Math.round(progress)}% concluído
           </div>
         </div>
         <div className="h-3 overflow-hidden rounded-full bg-white/6">
@@ -237,7 +254,7 @@ export function ExecutionForm({
             : "Referências carregadas. Você pode ajustar carga e repetir séries com apoio do seu histórico real."}
         </p>
         <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-          <p className="text-xs text-zinc-500">Cronometro de descanso</p>
+          <p className="text-xs text-zinc-500">Cronômetro de descanso</p>
           <div className="mt-2 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-2xl font-semibold text-zinc-50">
@@ -275,6 +292,8 @@ export function ExecutionForm({
       </Card>
 
       <form className="space-y-4">
+        <input type="hidden" {...register("executionId")} />
+
         {workout.workout_sections.map((section) => (
           <Card key={section.id} className="space-y-4">
             <div className="flex items-center justify-between">
@@ -311,11 +330,9 @@ export function ExecutionForm({
                             <Checkbox
                               checked={watched?.completed ?? false}
                               onChange={(event) =>
-                                setValue(
-                                  `logs.${index}.completed`,
-                                  event.target.checked,
-                                  { shouldDirty: true },
-                                )
+                                setValue(`logs.${index}.completed`, event.target.checked, {
+                                  shouldDirty: true,
+                                })
                               }
                             />
                             {watched?.completed ? (
@@ -345,9 +362,7 @@ export function ExecutionForm({
                         </div>
 
                         {exercise.notes ? (
-                          <p className="text-sm leading-6 text-zinc-400">
-                            {exercise.notes}
-                          </p>
+                          <p className="text-sm leading-6 text-zinc-400">{exercise.notes}</p>
                         ) : null}
 
                         <ExerciseVideoButton
@@ -357,6 +372,7 @@ export function ExecutionForm({
                       </div>
 
                       <div className="grid w-full gap-4 md:grid-cols-4 xl:max-w-xl">
+                        <input type="hidden" {...register(`logs.${index}.exerciseId`)} />
                         <FormField label="Carga (kg)">
                           <Input
                             type="number"
@@ -436,19 +452,26 @@ export function ExecutionForm({
           </Card>
         ) : null}
 
+        {hasValidationErrors ? (
+          <Card className="border-amber-400/20 bg-amber-400/10 text-sm text-amber-100">
+            Existem campos inválidos no formulário. Revise principalmente carga,
+            RPE e observações muito longas antes de salvar.
+          </Card>
+        ) : null}
+
         <div className="flex flex-wrap gap-3">
           <Button
             type="button"
             variant="secondary"
             disabled={isPending}
-            onClick={() => void onSubmit(false)()}
+            onClick={() => void submitExecution(false)()}
           >
             Salvar progresso
           </Button>
           <Button
             type="button"
             disabled={isPending}
-            onClick={() => void onSubmit(true)()}
+            onClick={() => void submitExecution(true)()}
           >
             {isPending ? "Salvando..." : "Finalizar treino"}
           </Button>
