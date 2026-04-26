@@ -20,15 +20,6 @@ const numberToNull = z.preprocess((value) => {
   return Number.isNaN(parsed) ? null : parsed;
 }, z.number().nonnegative().nullable());
 
-const rpeToNull = z.preprocess((value) => {
-  if (value === "" || value === null || value === undefined) {
-    return null;
-  }
-
-  const parsed = Number(value);
-  return Number.isNaN(parsed) ? null : parsed;
-}, z.number().min(1).max(10).nullable());
-
 const restSecondsToNull = z.preprocess((value) => {
   if (value === "" || value === null || value === undefined) {
     return null;
@@ -80,7 +71,6 @@ export const exerciseLogInputSchema = z.object({
   completed: z.boolean().default(false),
   loadUsed: numberToNull,
   repsDone: textToNull(z.string().trim().max(80)),
-  rpe: rpeToNull,
   restSeconds: restSecondsToNull,
   notes: textToNull(z.string().trim().max(500)),
 });

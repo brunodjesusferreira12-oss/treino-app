@@ -82,7 +82,7 @@ export async function GET(request: Request) {
       ? await supabase
           .from("exercise_logs")
           .select(
-            "execution_id, exercise_name, section_title, prescription, load_used, reps_done, rpe, rest_seconds, completed, notes",
+            "execution_id, exercise_name, section_title, prescription, load_used, reps_done, rest_seconds, completed, notes",
           )
           .in("execution_id", executionIds)
       : { data: [], error: null };
@@ -105,7 +105,6 @@ export async function GET(request: Request) {
         prescription: log.prescription,
         load_used: log.load_used,
         reps_done: log.reps_done,
-        rpe: log.rpe,
         rest_seconds: log.rest_seconds,
         exercise_completed: log.completed,
         execution_notes: executionMap.get(log.execution_id)?.notes ?? "",

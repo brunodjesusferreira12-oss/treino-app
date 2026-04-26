@@ -4,13 +4,13 @@ import { BrainCircuit, Gauge, History, TimerReset } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { formatDateOnly, formatLoad } from "@/lib/format";
-import { cn } from "@/lib/utils";
 import { buildRealtimeCopilotMessage } from "@/features/workouts/copilot";
 import type {
   ExerciseRow,
   ExecutionExerciseCopilotInsight,
 } from "@/features/workouts/types";
+import { formatDateOnly, formatLoad } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 type ExecutionCopilotCardProps = {
   exercise: ExerciseRow;
@@ -19,7 +19,6 @@ type ExecutionCopilotCardProps = {
     completed: boolean;
     loadUsed: number | null;
     repsDone: string | null;
-    rpe?: number | null;
     restSeconds?: number | null;
     notes: string | null;
   };
@@ -56,10 +55,7 @@ export function ExecutionCopilotCard({
         </p>
         <div className="grid gap-3 md:grid-cols-3">
           {Array.from({ length: 3 }).map((_, index) => (
-            <div
-              key={index}
-              className="h-20 rounded-2xl bg-black/20"
-            />
+            <div key={index} className="h-20 rounded-2xl bg-black/20" />
           ))}
         </div>
       </Card>
@@ -123,7 +119,7 @@ export function ExecutionCopilotCard({
             {insight?.recentHistory[0]
               ? `${formatDateOnly(insight.recentHistory[0].executedAt)} · ${
                   insight.recentHistory[0].repsDone ?? "sem reps"
-                }${insight.recentHistory[0].rpe ? ` · RPE ${insight.recentHistory[0].rpe}` : ""}`
+                }`
               : "Nenhuma sessão registrada"}
           </p>
         </div>
@@ -143,9 +139,6 @@ export function ExecutionCopilotCard({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <Badge className="border-white/10 bg-black/20 text-zinc-200">
-          RPE atual {currentLog?.rpe ?? "--"}
-        </Badge>
         <Badge className="border-white/10 bg-black/20 text-zinc-200">
           Descanso base {insight?.recommendedRestSeconds ?? 0}s
         </Badge>
@@ -192,7 +185,6 @@ export function ExecutionCopilotCard({
                 {formatDateOnly(item.executedAt)} ·{" "}
                 {item.loadUsed !== null ? formatLoad(item.loadUsed) : "sem carga"} ·{" "}
                 {item.repsDone ?? "sem reps"}
-                {item.rpe !== null ? ` · RPE ${item.rpe}` : ""}
               </span>
             ))}
           </div>

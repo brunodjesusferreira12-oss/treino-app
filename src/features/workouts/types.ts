@@ -26,7 +26,6 @@ export type ExecutionExerciseHistoryEntry = {
   executedAt: string;
   loadUsed: number | null;
   repsDone: string | null;
-  rpe: number | null;
   restSeconds: number | null;
   completed: boolean;
   notes: string | null;
@@ -38,7 +37,6 @@ export type ExecutionExerciseCopilotInsight = {
   lastLoad: number | null;
   bestLoad: number | null;
   lastRepsDone: string | null;
-  lastRpe: number | null;
   sessionCount: number;
   completionCount: number;
   loadHistoryCount: number;

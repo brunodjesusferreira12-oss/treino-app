@@ -452,7 +452,6 @@ export async function saveExecutionAction(
       }),
       load_used: log.loadUsed,
       reps_done: log.repsDone,
-      rpe: log.rpe,
       rest_seconds: log.restSeconds,
       notes: log.notes,
       completed: log.completed,

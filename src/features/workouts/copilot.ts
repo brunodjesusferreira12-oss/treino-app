@@ -57,7 +57,7 @@ function getRestRecommendation(exercise: ExerciseRow) {
     return "75-120s para recuperar bem sem esfriar";
   }
 
-  return "45-75s para sustentar volume com consistência";
+  return "45-75s para sustentar volume com consistencia";
 }
 
 function getRecommendedRestSeconds(exercise: ExerciseRow) {
@@ -110,18 +110,18 @@ function getSuggestedLoadLabel(
   }
 
   if (lastLoad !== null) {
-    return `Retome pela última carga útil: ${formatLoad(lastLoad)}`;
+    return `Retome pela ultima carga util: ${formatLoad(lastLoad)}`;
   }
 
   if (averageLoad !== null) {
-    return `Use a média histórica como base: ${formatLoad(averageLoad)}`;
+    return `Use a media historica como base: ${formatLoad(averageLoad)}`;
   }
 
   if (exercise.load_default !== null) {
     return `Comece perto da carga base do protocolo: ${formatLoad(exercise.load_default)}`;
   }
 
-  return "Sem histórico de carga ainda. Use uma carga técnica e registre o resultado.";
+  return "Sem historico de carga ainda. Use uma carga tecnica e registre o resultado.";
 }
 
 export function buildExecutionCopilotInsights(
@@ -150,8 +150,7 @@ export function buildExecutionCopilotInsights(
       loads.length > 0
         ? roundToHalf(loads.reduce((acc, value) => acc + value, 0) / loads.length)
         : null;
-    const lastLoad =
-      history.find((item) => item.load_used !== null)?.load_used ?? null;
+    const lastLoad = history.find((item) => item.load_used !== null)?.load_used ?? null;
     const bestLoad = loads.length > 0 ? Math.max(...loads) : null;
 
     insightByExerciseId[exercise.id] = {
@@ -160,7 +159,6 @@ export function buildExecutionCopilotInsights(
       lastLoad,
       bestLoad,
       lastRepsDone: history[0]?.reps_done ?? null,
-      lastRpe: history[0]?.rpe ?? null,
       sessionCount: history.length,
       completionCount: history.filter((item) => item.completed).length,
       loadHistoryCount: loads.length,
@@ -171,7 +169,6 @@ export function buildExecutionCopilotInsights(
         executedAt: item.executed_at,
         loadUsed: item.load_used,
         repsDone: item.reps_done,
-        rpe: item.rpe,
         restSeconds: item.rest_seconds,
         completed: item.completed,
         notes: item.notes,
@@ -196,8 +193,8 @@ export function buildRealtimeCopilotMessage(input: {
       title: "Primeira referencia",
       description:
         exercise.load_default !== null
-          ? `Você ainda não tem histórico deste exercício. Comece perto de ${formatLoad(exercise.load_default)} e ajuste pela técnica.`
-          : "Você ainda não tem histórico deste exercício. Escolha uma carga controlável, feche as repetições-alvo e registre tudo para o copiloto aprender.",
+          ? `Voce ainda nao tem historico deste exercicio. Comece perto de ${formatLoad(exercise.load_default)} e ajuste pela tecnica.`
+          : "Voce ainda nao tem historico deste exercicio. Escolha uma carga controlavel, feche as repeticoes-alvo e registre tudo para o copiloto aprender.",
       tone: "neutral" as const,
     };
   }
@@ -205,7 +202,7 @@ export function buildRealtimeCopilotMessage(input: {
   if (currentLoad !== null && insight.bestLoad !== null && currentLoad > insight.bestLoad) {
     return {
       title: "Acima do melhor registro",
-      description: `Essa carga está ${formatLoad(currentLoad - insight.bestLoad)} acima do seu melhor registro. Se a técnica estiver firme, avance; se a execução perder qualidade, recue para consolidar.`,
+      description: `Essa carga esta ${formatLoad(currentLoad - insight.bestLoad)} acima do seu melhor registro. Se a tecnica estiver firme, avance; se a execucao perder qualidade, recue para consolidar.`,
       tone: "highlight" as const,
     };
   }
@@ -213,15 +210,15 @@ export function buildRealtimeCopilotMessage(input: {
   if (currentLoad !== null && insight.lastLoad !== null && currentLoad > insight.lastLoad) {
     return {
       title: "Progressao ativa",
-      description: `Hoje você está ${formatLoad(currentLoad - insight.lastLoad)} acima da última carga registrada. Mantenha o descanso em ${insight.recommendedRest} e confirme o alvo de ${repTarget ?? "repetições planejadas"} com controle.`,
+      description: `Hoje voce esta ${formatLoad(currentLoad - insight.lastLoad)} acima da ultima carga registrada. Mantenha o descanso em ${insight.recommendedRest} e confirme o alvo de ${repTarget ?? "repeticoes planejadas"} com controle.`,
       tone: "highlight" as const,
     };
   }
 
   if (currentLoad !== null && insight.averageLoad !== null && currentLoad < insight.averageLoad) {
     return {
-      title: "Dia de consolidação",
-      description: `A carga atual ficou abaixo da sua média (${formatLoad(insight.averageLoad)}). Isso pode ser estratégico em dias de fadiga mais alta, desde que você mantenha boa técnica e volume consistente.`,
+      title: "Dia de consolidacao",
+      description: `A carga atual ficou abaixo da sua media (${formatLoad(insight.averageLoad)}). Isso pode ser estrategico em dias de fadiga mais alta, desde que voce mantenha boa tecnica e volume consistente.`,
       tone: "neutral" as const,
     };
   }
@@ -230,22 +227,14 @@ export function buildRealtimeCopilotMessage(input: {
     return {
       title: "Serie registrada",
       description:
-        "Exercício marcado como concluído. Se a percepção foi fácil ou pesada, registre uma observação curta para melhorar a próxima sugestão do copiloto.",
+        "Exercicio marcado como concluido. Se hoje teve algum ajuste importante, registre uma observacao curta para melhorar a proxima sugestao do copiloto.",
       tone: "success" as const,
-    };
-  }
-
-  if (insight.lastRpe !== null && insight.lastRpe >= 9) {
-    return {
-      title: "Histórico pesado",
-      description: `Na última sessão este exercício chegou a RPE ${insight.lastRpe}. Hoje vale subir só se a técnica estiver firme; caso contrário, repita a base com descanso de ${insight.recommendedRest}.`,
-      tone: "neutral" as const,
     };
   }
 
   return {
     title: "Base sugerida",
-    description: `${insight.recommendedLoadLabel}. Último resultado registrado: ${insight.lastRepsDone ?? "sem repetições registradas"} e descanso recomendado de ${insight.recommendedRest}.`,
+    description: `${insight.recommendedLoadLabel}. Ultimo resultado registrado: ${insight.lastRepsDone ?? "sem repeticoes registradas"} e descanso recomendado de ${insight.recommendedRest}.`,
     tone: "neutral" as const,
   };
 }

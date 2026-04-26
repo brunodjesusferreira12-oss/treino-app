@@ -37,7 +37,6 @@ type ExecutionFormProps = {
       completed: boolean;
       loadUsed: number | null;
       repsDone: string | null;
-      rpe: number | null;
       restSeconds: number | null;
       notes: string | null;
     }
@@ -87,7 +86,6 @@ export function ExecutionForm({
         completed: existingLogs[exercise.id]?.completed ?? false,
         loadUsed: existingLogs[exercise.id]?.loadUsed ?? exercise.load_default ?? null,
         repsDone: existingLogs[exercise.id]?.repsDone ?? null,
-        rpe: existingLogs[exercise.id]?.rpe ?? null,
         restSeconds: existingLogs[exercise.id]?.restSeconds ?? null,
         notes: existingLogs[exercise.id]?.notes ?? null,
       })),
@@ -110,7 +108,6 @@ export function ExecutionForm({
         errors.logs?.[index]?.exerciseId ||
           errors.logs?.[index]?.loadUsed ||
           errors.logs?.[index]?.repsDone ||
-          errors.logs?.[index]?.rpe ||
           errors.logs?.[index]?.restSeconds ||
           errors.logs?.[index]?.notes,
       ),
@@ -207,7 +204,9 @@ export function ExecutionForm({
           }
         }),
       () => {
-        setMessage("Revise apenas os campos com valor inválido. Os demais podem ficar em branco.");
+        setMessage(
+          "Revise apenas os campos com valor inválido. Os demais podem ficar em branco.",
+        );
       },
     );
 
@@ -304,9 +303,9 @@ export function ExecutionForm({
         <input type="hidden" {...register("executionId")} />
 
         <Card className="border-sky-300/20 bg-sky-300/10 text-sm text-sky-100">
-          Você pode finalizar o treino mesmo sem preencher carga, repetições,
-          RPE ou observações em todos os exercícios. Esses campos são opcionais
-          e servem apenas para enriquecer seu histórico.
+          Você pode finalizar o treino mesmo sem preencher carga, repetições ou
+          observações em todos os exercícios. Esses campos são opcionais e servem
+          apenas para enriquecer seu histórico.
         </Card>
 
         {workout.workout_sections.map((section) => (
@@ -386,7 +385,7 @@ export function ExecutionForm({
                         />
                       </div>
 
-                      <div className="grid w-full gap-4 md:grid-cols-4 xl:max-w-xl">
+                      <div className="grid w-full gap-4 md:grid-cols-3 xl:max-w-xl">
                         <input type="hidden" {...register(`logs.${index}.exerciseId`)} />
                         <FormField
                           label="Carga (kg)"
@@ -411,23 +410,6 @@ export function ExecutionForm({
                           <Input
                             placeholder="8, 30s, 1 round..."
                             {...register(`logs.${index}.repsDone`)}
-                          />
-                        </FormField>
-                        <FormField
-                          label="RPE"
-                          error={errors.logs?.[index]?.rpe?.message}
-                          hint="Opcional. Escala de 1 a 10 para percepção de esforço."
-                        >
-                          <Input
-                            type="number"
-                            min={1}
-                            max={10}
-                            step="0.5"
-                            placeholder="Ex.: 8"
-                            {...register(`logs.${index}.rpe`, {
-                              setValueAs: (value) =>
-                                value === "" ? null : Number(value),
-                            })}
                           />
                         </FormField>
                         <FormField
@@ -484,7 +466,7 @@ export function ExecutionForm({
           <Card className="border-amber-400/20 bg-amber-400/10 text-sm text-amber-100">
             Existem alguns valores inválidos no formulário. Você ainda pode
             deixar campos em branco, mas valores preenchidos precisam estar no
-            formato esperado, como RPE entre 1 e 10.
+            formato esperado.
           </Card>
         ) : null}
 

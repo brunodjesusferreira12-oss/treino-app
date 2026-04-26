@@ -30,7 +30,6 @@ export default async function ExecutionPage({ params }: PageProps) {
         completed: log.completed,
         loadUsed: log.load_used,
         repsDone: log.reps_done,
-        rpe: log.rpe,
         restSeconds: log.rest_seconds,
         notes: log.notes,
       },
