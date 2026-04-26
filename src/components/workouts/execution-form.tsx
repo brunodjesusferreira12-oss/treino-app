@@ -105,7 +105,16 @@ export function ExecutionForm({
   const hasValidationErrors =
     Boolean(errors.executionId) ||
     Boolean(errors.notes) ||
-    Boolean(errors.logs?.length);
+    exercises.some((_, index) =>
+      Boolean(
+        errors.logs?.[index]?.exerciseId ||
+          errors.logs?.[index]?.loadUsed ||
+          errors.logs?.[index]?.repsDone ||
+          errors.logs?.[index]?.rpe ||
+          errors.logs?.[index]?.restSeconds ||
+          errors.logs?.[index]?.notes,
+      ),
+    );
 
   useEffect(() => {
     if (remainingRestSeconds <= 0) {
@@ -198,7 +207,7 @@ export function ExecutionForm({
           }
         }),
       () => {
-        setMessage("Revise os campos destacados antes de finalizar o treino.");
+        setMessage("Revise apenas os campos com valor inválido. Os demais podem ficar em branco.");
       },
     );
 
@@ -291,8 +300,14 @@ export function ExecutionForm({
         </div>
       </Card>
 
-      <form className="space-y-4">
+      <form className="space-y-4" noValidate>
         <input type="hidden" {...register("executionId")} />
+
+        <Card className="border-sky-300/20 bg-sky-300/10 text-sm text-sky-100">
+          Você pode finalizar o treino mesmo sem preencher carga, repetições,
+          RPE ou observações em todos os exercícios. Esses campos são opcionais
+          e servem apenas para enriquecer seu histórico.
+        </Card>
 
         {workout.workout_sections.map((section) => (
           <Card key={section.id} className="space-y-4">
@@ -373,7 +388,11 @@ export function ExecutionForm({
 
                       <div className="grid w-full gap-4 md:grid-cols-4 xl:max-w-xl">
                         <input type="hidden" {...register(`logs.${index}.exerciseId`)} />
-                        <FormField label="Carga (kg)">
+                        <FormField
+                          label="Carga (kg)"
+                          error={errors.logs?.[index]?.loadUsed?.message}
+                          hint="Opcional"
+                        >
                           <Input
                             type="number"
                             min={0}
@@ -384,7 +403,11 @@ export function ExecutionForm({
                             })}
                           />
                         </FormField>
-                        <FormField label="Repetições / resultado">
+                        <FormField
+                          label="Repetições / resultado"
+                          error={errors.logs?.[index]?.repsDone?.message}
+                          hint="Opcional"
+                        >
                           <Input
                             placeholder="8, 30s, 1 round..."
                             {...register(`logs.${index}.repsDone`)}
@@ -392,7 +415,8 @@ export function ExecutionForm({
                         </FormField>
                         <FormField
                           label="RPE"
-                          hint="Escala de 1 a 10 para percepção de esforço."
+                          error={errors.logs?.[index]?.rpe?.message}
+                          hint="Opcional. Escala de 1 a 10 para percepção de esforço."
                         >
                           <Input
                             type="number"
@@ -406,7 +430,11 @@ export function ExecutionForm({
                             })}
                           />
                         </FormField>
-                        <FormField label="Observação">
+                        <FormField
+                          label="Observação"
+                          error={errors.logs?.[index]?.notes?.message}
+                          hint="Opcional"
+                        >
                           <Input
                             placeholder="Como foi hoje?"
                             {...register(`logs.${index}.notes`)}
@@ -438,7 +466,7 @@ export function ExecutionForm({
         ))}
 
         <Card>
-          <FormField label="Observações do dia">
+          <FormField label="Observações do dia" error={errors.notes?.message}>
             <Textarea
               placeholder="Como você se sentiu, ajustes, dor, evolução..."
               {...register("notes")}
@@ -454,8 +482,9 @@ export function ExecutionForm({
 
         {hasValidationErrors ? (
           <Card className="border-amber-400/20 bg-amber-400/10 text-sm text-amber-100">
-            Existem campos inválidos no formulário. Revise principalmente carga,
-            RPE e observações muito longas antes de salvar.
+            Existem alguns valores inválidos no formulário. Você ainda pode
+            deixar campos em branco, mas valores preenchidos precisam estar no
+            formato esperado, como RPE entre 1 e 10.
           </Card>
         ) : null}
 
