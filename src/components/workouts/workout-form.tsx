@@ -15,6 +15,7 @@ import {
 } from "react-hook-form";
 import { GripVertical, Plus, Trash2, Video } from "lucide-react";
 
+import { ProtocolImporterCard } from "@/components/workouts/protocol-importer-card";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -34,6 +35,10 @@ import {
   workoutFormSchema,
   type WorkoutFormValues,
 } from "@/features/workouts/schemas";
+import {
+  parseWorkoutProtocol,
+  type WorkoutProtocolImportResult,
+} from "@/features/workouts/importer";
 
 function createEmptyExercise() {
   return {
@@ -266,6 +271,11 @@ type WorkoutFormProps = {
 export function WorkoutForm({ mode, initialValues }: WorkoutFormProps) {
   const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
+  const [protocolInput, setProtocolInput] = useState("");
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importResult, setImportResult] = useState<WorkoutProtocolImportResult | null>(
+    null,
+  );
   const [isPending, startTransition] = useTransition();
 
   const {
@@ -294,7 +304,7 @@ export function WorkoutForm({ mode, initialValues }: WorkoutFormProps) {
       } satisfies WorkoutFormValues),
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, replace } = useFieldArray({
     control,
     name: "sections",
   });
@@ -305,12 +315,66 @@ export function WorkoutForm({ mode, initialValues }: WorkoutFormProps) {
       name: "scheduledDays",
     }) ?? [];
 
+  function handleProtocolImport() {
+    setImportError(null);
+
+    try {
+      const parsed = parseWorkoutProtocol(protocolInput);
+
+      replace(parsed.sections);
+
+      if (parsed.name) {
+        setValue("name", parsed.name, { shouldDirty: true, shouldValidate: true });
+      }
+
+      if (parsed.scheduledDays.length > 0) {
+        setValue("scheduledDays", parsed.scheduledDays, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      }
+
+      if (parsed.suggestedCategory) {
+        setValue("category", parsed.suggestedCategory, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      }
+
+      if (parsed.objective) {
+        setValue("objective", parsed.objective, { shouldDirty: true });
+      }
+
+      if (parsed.notes) {
+        setValue("notes", parsed.notes, { shouldDirty: true });
+      }
+
+      setImportResult(parsed);
+      setMessage(null);
+    } catch (error) {
+      setImportResult(null);
+      setImportError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível interpretar o protocolo informado.",
+      );
+    }
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
         eyebrow={mode === "create" ? "Novo treino" : "Editar treino"}
         title={mode === "create" ? "Montar protocolo" : "Atualizar protocolo"}
         description="Cadastre modalidade, blocos, exercícios e links de vídeo para executar o treino com contexto real do esporte."
+      />
+
+      <ProtocolImporterCard
+        value={protocolInput}
+        onChange={setProtocolInput}
+        onImport={handleProtocolImport}
+        summary={importResult}
+        error={importError}
       />
 
       <form
